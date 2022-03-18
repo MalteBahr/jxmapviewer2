@@ -9,13 +9,16 @@
 
 package org.jxmapviewer.viewer.util;
 
-import java.awt.Dimension;
+
+import java.awt.*;
+import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jxmapviewer.JXMapViewer;
+
+import javafx.scene.shape.Rectangle;
+import org.jxmapviewer.jfx.JFXMapViewer;
 import org.jxmapviewer.viewer.GeoBounds;
 import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.TileFactory;
@@ -33,7 +36,7 @@ public final class GeoUtil
      * @param info the tile factory info
      * @return the size of the map at the given zoom, in tiles (num tiles tall by num tiles wide)
      */
-    public static Dimension getMapSize(int zoom, TileFactoryInfo info)
+    public static Dimension2D getMapSize(int zoom, TileFactoryInfo info)
     {
         return new Dimension(info.getMapWidthInTilesAtZoom(zoom), info.getMapWidthInTilesAtZoom(zoom));
     }
@@ -81,7 +84,7 @@ public final class GeoUtil
      * @param info the tile factory info
      * @return the coordinate
      */
-    public static Point2D getBitmapCoordinate(GeoPosition c, int zoomLevel, TileFactoryInfo info)
+    public static Point2D getBitmapCoordinate(GeoPosition c, double zoomLevel, TileFactoryInfo info)
     {
         return getBitmapCoordinate(c.getLatitude(), c.getLongitude(), zoomLevel, info);
     }
@@ -95,7 +98,7 @@ public final class GeoUtil
      * @param info the tile factory info
      * @return the coordinate
      */
-    public static Point2D getBitmapCoordinate(double latitude, double longitude, int zoomLevel, TileFactoryInfo info)
+    public static Point2D getBitmapCoordinate(double latitude, double longitude, double zoomLevel, TileFactoryInfo info)
     {
         double x = info.getMapCenterInPixelsAtZoom(zoomLevel).getX() + longitude
                 * info.getLongitudeDegreeWidthInPixels(zoomLevel);
@@ -113,6 +116,26 @@ public final class GeoUtil
         return new Point2D.Double(x, y);
     }
 
+    public final static double C = 40075016.686; // circumference of the earth
+
+
+
+
+    /**
+     *
+     * @param position
+     * @param zoom
+     * @param info
+     * @return resolution at the positions latitude in meters/pixel
+     */
+
+    public static double getResolution(GeoPosition position, double zoom, TileFactoryInfo info) {
+        // https://wiki.openstreetmap.org/wiki/Zoom_levels
+        double S_tile = C * Math.cos(Math.toRadians(position.getLatitude())) / Math.pow(2,info.getTotalMapZoom()-zoom);
+        return S_tile / info.getTileSize(zoom);
+
+    }
+
     /** 
      * Convert an on screen pixel coordinate and a zoom level to a geo position
      * @param pixelCoordinate the coordinate in pixels
@@ -120,7 +143,7 @@ public final class GeoUtil
      * @param info the tile factory info
      * @return a geo position
      */
-    public static GeoPosition getPosition(Point2D pixelCoordinate, int zoom, TileFactoryInfo info)
+    public static GeoPosition getPosition(Point2D pixelCoordinate, double zoom, TileFactoryInfo info)
     {
         // p(" --bitmap to latlon : " + coord + " " + zoom);
         double wx = pixelCoordinate.getX();
@@ -140,7 +163,7 @@ public final class GeoUtil
      * @param mapViewer The map viewer.
      * @return Returns the bounds.
      */
-    public static GeoBounds getMapBounds(JXMapViewer mapViewer)
+    public static GeoBounds getMapBounds(JFXMapViewer mapViewer)
     {
         return new GeoBounds(getMapGeoBounds(mapViewer));
     }
@@ -151,17 +174,18 @@ public final class GeoUtil
      * @return Returns the set of two <code>GeoPosition</code> objects that represent the north west and south east
      * corners of the map.
      */
-    private static Set<GeoPosition> getMapGeoBounds(JXMapViewer mapViewer)
+    private static Set<GeoPosition> getMapGeoBounds(JFXMapViewer mapViewer)
     {
         Set<GeoPosition> set = new HashSet<GeoPosition>();
-        TileFactory tileFactory = mapViewer.getTileFactory();
-        int zoom = mapViewer.getZoom();
-        Rectangle2D bounds = mapViewer.getViewportBounds();
+        TileFactory tileFactory = mapViewer.getFactory();
+        double zoom = mapViewer.getZoomLevel();
+        Rectangle bounds = mapViewer.getViewportBounds();
         Point2D pt = new Point2D.Double(bounds.getX(), bounds.getY());
         set.add(tileFactory.pixelToGeo(pt, zoom));
         pt = new Point2D.Double(bounds.getX() + bounds.getWidth(), bounds.getY() + bounds.getHeight());
         set.add(tileFactory.pixelToGeo(pt, zoom));
         return set;
     }
+
 
 }

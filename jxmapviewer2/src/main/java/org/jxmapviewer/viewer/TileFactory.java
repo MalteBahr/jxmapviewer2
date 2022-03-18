@@ -9,7 +9,8 @@
 
 package org.jxmapviewer.viewer;
 
-import java.awt.Dimension;
+
+import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,10 +53,12 @@ public abstract class TileFactory
      * @return the size of the world bitmap in tiles
      * @param zoom the current zoom level
      */
-    public Dimension getMapSize(int zoom)
+    public Dimension2D getMapSize(int zoom)
     {
         return GeoUtil.getMapSize(zoom, getInfo());
     }
+
+    public abstract TileWrapper getTileWrapper(int x, int y, int zoom);
 
     /**
      * Return the Tile at a given TilePoint and zoom level
@@ -76,20 +79,25 @@ public abstract class TileFactory
      * @param zoom the zoom level of the world bitmap
      * @return the converted GeoPosition
      */
-    public GeoPosition pixelToGeo(Point2D pixelCoordinate, int zoom)
+    public GeoPosition pixelToGeo(Point2D pixelCoordinate, double zoom)
     {
         return GeoUtil.getPosition(pixelCoordinate, zoom, getInfo());
     }
 
     /**
      * Convert a GeoPosition to a pixel position in the world bitmap a the specified zoom level.
-     * @param c a GeoPosition
+     *
+     * @param c         a GeoPosition
      * @param zoomLevel the zoom level to extract the pixel coordinate for
      * @return the pixel point
      */
-    public Point2D geoToPixel(GeoPosition c, int zoomLevel)
+
+    public Point2D geoToPixel(GeoPosition c, double zoomLevel)
     {
         return GeoUtil.getBitmapCoordinate(c, zoomLevel, getInfo());
+    }
+    public double geoToResolution(GeoPosition position, double zoom) {
+        return GeoUtil.getResolution(position,zoom,getInfo());
     }
 
     /**
@@ -146,4 +154,6 @@ public abstract class TileFactory
      * @param cache the local cache to use
      */
     public void setLocalCache(LocalCache cache) { /* to not break existing implementations */ }
+
+
 }

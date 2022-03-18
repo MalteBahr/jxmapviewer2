@@ -9,34 +9,31 @@
 
 package org.jxmapviewer;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Insets;
-import java.awt.Rectangle;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.VolatileImage;
 import java.beans.DesignMode;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.URL;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.imageio.ImageIO;
-import javax.swing.JPanel;
+import javax.swing.*;
 
 import org.jxmapviewer.input.PanMouseInputListener;
 import org.jxmapviewer.painter.AbstractPainter;
 import org.jxmapviewer.painter.Painter;
-import org.jxmapviewer.viewer.GeoBounds;
-import org.jxmapviewer.viewer.GeoPosition;
-import org.jxmapviewer.viewer.Tile;
-import org.jxmapviewer.viewer.TileFactory;
-import org.jxmapviewer.viewer.TileFactoryInfo;
-import org.jxmapviewer.viewer.TileListener;
+import org.jxmapviewer.viewer.*;
 import org.jxmapviewer.viewer.empty.EmptyTileFactory;
 
 /**
@@ -65,7 +62,7 @@ public class JXMapViewer extends JPanel implements DesignMode
      * The zoom level. Generally a value between 1 and 15 (TODO Is this true for all the mapping worlds? What does this
      * mean if some mapping system doesn't support the zoom level?
      */
-    private int zoomLevel = 1;
+    private int zoomLevel = 10;
 
     /**
      * The position, in <I>map coordinates</I> of the center point. This is defined as the distance from the top and
@@ -73,6 +70,11 @@ public class JXMapViewer extends JPanel implements DesignMode
      * cause the center to be recalculated so as to remain in the center of the new "map".
      */
     private Point2D center = new Point2D.Double(0, 0);
+
+    /**
+     * The rotation angle of the map in radians.
+     */
+    private double angle = 0.0;
 
     /**
      * Indicates whether or not to draw the borders between tiles. Defaults to false. TODO Generally not very nice
@@ -112,6 +114,7 @@ public class JXMapViewer extends JPanel implements DesignMode
      * explicit setting of position via {@link setCenter}.
      */
     private boolean panningEnabled = true;
+    private AtomicBoolean bufferGraphicsFinished = new AtomicBoolean(true);
 
     /**
      * Create a new JXMapViewer. By default it will use the EmptyTileFactory
@@ -120,7 +123,6 @@ public class JXMapViewer extends JPanel implements DesignMode
     {
         factory = new EmptyTileFactory();
         // setTileFactory(new GoogleTileFactory());
-
         // make a dummy loading image
         try
         {
@@ -138,36 +140,189 @@ public class JXMapViewer extends JPanel implements DesignMode
             this.setLoadingImage(img);
         }
 
+        asyncDoPaintComponent();
+
         // setAddressLocation(new GeoPosition(37.392137,-121.950431)); // Sun campus
     }
+
+    private VolatileImage frameBuffer;
 
     @Override
     protected void paintComponent(Graphics g)
     {
-        super.paintComponent(g);
 
-        doPaintComponent(g);
+        clip = g.getClip();
+//
+//
+//
+//        if(bufferWidth!=getSize().width ||
+//                bufferHeight!=getSize().height ||
+//                bufferImage==null || bufferGraphics==null)
+//            resetBuffer();
+//
+//        if(bufferGraphics!=null){
+//            //this clears the offscreen image, not the onscreen one
+//            bufferGraphics.clearRect(0,0,bufferWidth,bufferHeight);
+
+            //calls the paintbuffer method with
+            //the offscreen graphics as a param
+            super.paintComponent(g);
+
+
+//            //we finaly paint the offscreen image onto the onscreen image
+//        if(bufferGraphicsFinished.get()) {
+
+
+//            if(bufferGraphics == null)
+//                    resetBuffer();
+//            if(bufferGraphics != null)
+                doPaintComponent(g);
+
+//            if (bufferImage != null)
+//                g.drawImage(bufferImage, 0, 0, this);
+//        }
+//        }
+
+
+//
+//        if(frameBuffer != null)
+//            g.drawImage(frameBuffer, 0, 0, this);
+
+
+    }
+    private int bufferWidth;
+    private int bufferHeight;
+    private Image bufferImage;
+    private Graphics bufferGraphics;
+
+    private void resetBuffer(){
+        // always keep track of the image size
+        bufferWidth=getSize().width;
+        bufferHeight=getSize().height;
+        if(bufferWidth <= 0)
+            return;
+        if (bufferHeight <= 0)
+            return;
+
+        //    clean up the previous image
+        if(bufferGraphics!=null){
+            bufferGraphics.dispose();
+            bufferGraphics=null;
+        }
+        if(bufferImage!=null){
+            bufferImage.flush();
+            bufferImage=null;
+        }
+        System.gc();
+
+        //    create the new image with the size of the panel
+
+
+        bufferImage=createVolatileImage(bufferWidth,bufferHeight);
+        if(bufferImage != null)
+            bufferGraphics=bufferImage.getGraphics();
     }
 
+
+    private void asyncDoPaintComponent() {
+//
+//        ScheduledService<Void> service = new ScheduledService<Void>() {
+//            @Override
+//            protected Task<Void> createTask() {
+//                return new Task<Void>() {
+//                    @Override
+//                    protected Void call() throws Exception {
+//                        long time = System.nanoTime();
+//                        if (bufferGraphics == null)
+//                            resetBuffer();
+//                        if (bufferGraphics != null) {
+//                            bufferGraphicsFinished.set(false);
+//                            doPaintComponent(bufferGraphics);
+//                            bufferGraphicsFinished.set(true);
+//                        }
+//                        time = System.nanoTime() - time;
+//                        System.out.println("ms: " + time * 1e-6);
+//                        return null;
+//                    }
+//                };
+//            }
+//
+//        };
+//        service.setPeriod(Duration.millis(15));
+//        service.start();
+
+//        new Timer(15,
+//        new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                long time = System.nanoTime();
+//
+//                if(bufferGraphics == null)
+//                    resetBuffer();
+//                if(bufferGraphics != null)
+//                    doPaintComponent(bufferGraphics);
+//                time = System.nanoTime() - time;
+////                System.out.println("time used: " + time * 1e-6);
+//            }
+////        doPaintComponent(g);
+//        }).start();
+
+    }
+
+//    @Override
+//    protected  void paintChildren(Graphics g){
+//        Rectangle viewportBounds = getViewportBounds();
+//
+//        Graphics2D g2 = (Graphics2D) g;
+//        g2.rotate(getAngle(), viewportBounds.getWidth()/2.0, viewportBounds.getHeight()/2.0);
+//
+//        super.paintChildren(g2);
+//
+//        g2.rotate(-getAngle(), viewportBounds.getWidth()/2.0, viewportBounds.getHeight()/2.0);
+//
+//    }
+
     // the method that does the actual painting
-    private void doPaintComponent(Graphics g)
-    {/*
+    private void doPaintComponent(Graphics bufferGraphics) {/*
      * if (isOpaque() || isDesignTime()) { g.setColor(getBackground()); g.fillRect(0,0,getWidth(),getHeight()); }
      */
+        Rectangle viewportBounds = getViewportBounds();
 
-        if (isDesignTime())
-        {
-            // do nothing
-        }
-        else
-        {
+        if(getClip() == null)
+            return;
+
+        bufferGraphics.setClip(getClip());
+//        offscreen.setClip(onscreen.getClip());
+
+//        if (isDesignTime())
+//        {
+//            // do nothing
+//        }
+//        else
+//        {
             int z = getZoom();
-            Rectangle viewportBounds = getViewportBounds();
-            drawMapTiles(g, z, viewportBounds);
-            drawOverlays(z, g, viewportBounds);
-        }
 
-        super.paintBorder(g);
+            Graphics2D g2 = (Graphics2D) bufferGraphics.create();
+            g2.rotate(getAngle(), viewportBounds.getWidth()/2.0, viewportBounds.getHeight()/2.0);
+
+            drawMapTiles(g2, z, viewportBounds);
+            drawOverlays(z, g2, viewportBounds);
+
+            g2.rotate(-getAngle(), viewportBounds.getWidth()/2.0, viewportBounds.getHeight()/2.0);
+
+            g2.dispose();
+//        }
+
+        super.paintBorder(bufferGraphics);
+
+    }
+
+
+
+
+    private Shape clip;
+    private Shape getClip() {
+        return clip;
     }
 
     /**
@@ -200,21 +355,20 @@ public class JXMapViewer extends JPanel implements DesignMode
     {
         int size = getTileFactory().getTileSize(zoom);
         Dimension mapSize = getTileFactory().getMapSize(zoom);
-
         // calculate the "visible" viewport area in tiles
-        int numWide = viewportBounds.width / size + 2;
-        int numHigh = viewportBounds.height / size + 2;
+        int numWide = (viewportBounds.width * 2) / size + 2;
+        int numHigh = (viewportBounds.height * 2) / size + 2;
+
 
         // TilePoint topLeftTile = getTileFactory().getTileCoordinate(
         // new Point2D.Double(viewportBounds.x, viewportBounds.y));
         TileFactoryInfo info = getTileFactory().getInfo();
 
         // number of tiles in x direction
-        int tpx = (int) Math.floor(viewportBounds.getX() / info.getTileSize(0));
+        int tpx = (int) Math.floor((viewportBounds.getX() - viewportBounds.getWidth()) / info.getTileSize(zoom));
         // number of tiles in y direction
-        int tpy = (int) Math.floor(viewportBounds.getY() / info.getTileSize(0));
+        int tpy = (int) Math.floor((viewportBounds.getY() - viewportBounds.getHeight() )/ info.getTileSize(zoom));
         // TilePoint topLeftTile = new TilePoint(tpx, tpy);
-
         // p("top tile = " + topLeftTile);
         // fetch the tiles from the factory and store them in the tiles cache
         // attach the tileLoadListener
@@ -229,7 +383,7 @@ public class JXMapViewer extends JPanel implements DesignMode
                 if (g.getClipBounds().intersects(
                         new Rectangle(itpx * size - viewportBounds.x, itpy * size - viewportBounds.y, size, size)))
                 {
-                    Tile tile = getTileFactory().getTile(itpx, itpy, zoom);
+                    TileWrapper tile = getTileFactory().getTileWrapper(itpx, itpy, zoom);
                     int ox = ((itpx * getTileFactory().getTileSize(zoom)) - viewportBounds.x);
                     int oy = ((itpy * getTileFactory().getTileSize(zoom)) - viewportBounds.y);
 
@@ -242,34 +396,34 @@ public class JXMapViewer extends JPanel implements DesignMode
                             g.fillRect(ox, oy, size, size);
                         }
                     }
-                    else if (tile.isLoaded())
-                    {
-                        g.drawImage(tile.getImage(), ox, oy, null);
-                    }
                     else
                     {
-                        Tile superTile = null;
-
-                        // Use tile at higher zoom level with 200% magnification and if we are not already at max resolution
-                        if (zoom < info.getMaximumZoomLevel()) {
-                            superTile = getTileFactory().getTile(itpx / 2, itpy / 2, zoom + 1);
-                        }
-
-                        if ( superTile != null && superTile.isLoaded())
-                        {
-                            int offX = (itpx % 2) * size / 2;
-                            int offY = (itpy % 2) * size / 2;
-                            g.drawImage(superTile.getImage(), ox, oy, ox + size, oy + size, offX, offY, offX + size / 2, offY + size / 2, null);
-                        }
-                        else
-                        {
-                            int imageX = (getTileFactory().getTileSize(zoom) - getLoadingImage().getWidth(null)) / 2;
-                            int imageY = (getTileFactory().getTileSize(zoom) - getLoadingImage().getHeight(null)) / 2;
-                            g.setColor(Color.GRAY);
-                            g.fillRect(ox, oy, size, size);
-                            g.drawImage(getLoadingImage(), ox + imageX, oy + imageY, null);
-                        }
+                        g.drawImage(tile.getImage(), ox, oy,size,size, null);
                     }
+//                    else
+//                    {
+//                        Tile superTile = null;
+//
+//                        // Use tile at higher zoom level with 200% magnification and if we are not already at max resolution
+//                        if (zoom < info.getMaximumZoomLevel()) {
+//                            superTile = getTileFactory().getTile(itpx / 2, itpy / 2, zoom + 1);
+//                        }
+//
+//                        if ( superTile != null && superTile.isLoaded())
+//                        {
+//                            int offX = (itpx % 2) * size / 2;
+//                            int offY = (itpy % 2) * size / 2;
+//                            g.drawImage(superTile.getImage(), ox, oy, ox + size, oy + size, offX, offY, offX + size / 2, offY + size / 2, null);
+//                        }
+//                        else
+//                        {
+//                            int imageX = (getTileFactory().getTileSize(zoom) - getLoadingImage().getWidth(null)) / 2;
+//                            int imageY = (getTileFactory().getTileSize(zoom) - getLoadingImage().getHeight(null)) / 2;
+//                            g.setColor(Color.GRAY);
+//                            g.fillRect(ox, oy, size, size);
+//                            g.drawImage(getLoadingImage(), ox + imageX, oy + imageY, null);
+//                        }
+//                    }
                     if (isDrawTileBorders())
                     {
 
@@ -323,7 +477,7 @@ public class JXMapViewer extends JPanel implements DesignMode
             {
                 if (evt.getNewValue().equals(Boolean.TRUE))
                 {
-                    repaint();
+//                    repaint();
                 }
             }
         };
@@ -341,7 +495,7 @@ public class JXMapViewer extends JPanel implements DesignMode
         }
 
         firePropertyChange("mapOverlay", old, getOverlayPainter());
-        repaint();
+//        repaint();
     }
 
     /**
@@ -365,13 +519,28 @@ public class JXMapViewer extends JPanel implements DesignMode
 
     private Rectangle calculateViewportBounds(Point2D centr)
     {
+
         Insets insets = getInsets();
         // calculate the "visible" viewport area in pixels
         int viewportWidth = getWidth() - insets.left - insets.right;
         int viewportHeight = getHeight() - insets.top - insets.bottom;
+
+
         double viewportX = (centr.getX() - viewportWidth / 2);
         double viewportY = (centr.getY() - viewportHeight / 2);
+
         return new Rectangle((int) viewportX, (int) viewportY, viewportWidth, viewportHeight);
+//
+//        double viewportX = (centr.getX() - viewportWidth/2 + viewportWidth/2*Math.cos(angle));
+//        double viewportY = (centr.getY() - viewportHeight/2 + viewportHeight/2*Math.sin(angle));
+//        double viewport2X = (centr.getX() + viewportWidth /2 + viewportWidth/2*Math.cos(angle));
+//        double viewport2Y = (centr.getY() + viewportHeight /2 + viewportHeight/2*Math.sin(angle));
+//        double minX = Math.min(viewportX, viewport2X);
+//        double minY = Math.min(viewportY, viewport2Y);
+//        double maxX = Math.max(viewportX, viewport2X);
+//        double maxY = Math.max(viewportY, viewport2Y);
+//
+//        return new Rectangle((int) minX, (int) minY, (int)(maxX-minX), (int)(maxY-minY));
     }
 
     /**
@@ -396,15 +565,20 @@ public class JXMapViewer extends JPanel implements DesignMode
         int oldzoom = this.zoomLevel;
         Point2D oldCenter = getCenter();
         Dimension oldMapSize = getTileFactory().getMapSize(oldzoom);
+        double oldTileSize = getTileFactory().getTileSize(oldzoom);
+
         this.zoomLevel = zoom;
         this.firePropertyChange("zoom", oldzoom, zoom);
 
         Dimension mapSize = getTileFactory().getMapSize(zoom);
+        double newTileSize = getTileFactory().getTileSize(zoom);
 
-        setCenter(new Point2D.Double(oldCenter.getX() * (mapSize.getWidth() / oldMapSize.getWidth()), oldCenter.getY()
-                * (mapSize.getHeight() / oldMapSize.getHeight())));
+        Point2D.Double pt = new Point2D.Double(oldCenter.getX() * (mapSize.getWidth() * newTileSize / (oldMapSize.getWidth() * oldTileSize)), oldCenter.getY()
+                * (mapSize.getHeight() * newTileSize / (oldMapSize.getHeight() * oldTileSize) ));
 
-        repaint();
+        setCenter(pt);
+
+//        repaint();
     }
 
     /**
@@ -437,7 +611,7 @@ public class JXMapViewer extends JPanel implements DesignMode
         setCenter(getTileFactory().geoToPixel(addressLocation, getZoom()));
 
         firePropertyChange("addressLocation", old, getAddressLocation());
-        repaint();
+//        repaint();
     }
 
     /**
@@ -447,7 +621,7 @@ public class JXMapViewer extends JPanel implements DesignMode
     public void recenterToAddressLocation()
     {
         setCenter(getTileFactory().geoToPixel(getAddressLocation(), getZoom()));
-        repaint();
+//        repaint();
     }
 
     /**
@@ -468,7 +642,7 @@ public class JXMapViewer extends JPanel implements DesignMode
         boolean old = isDrawTileBorders();
         this.drawTileBorders = drawTileBorders;
         firePropertyChange("drawTileBorders", old, isDrawTileBorders());
-        repaint();
+//        repaint();
     }
 
     /**
@@ -479,9 +653,9 @@ public class JXMapViewer extends JPanel implements DesignMode
     {
         GeoPosition oldVal = getCenterPosition();
         setCenter(getTileFactory().geoToPixel(geoPosition, zoomLevel));
-        repaint();
-        GeoPosition newVal = getCenterPosition();
-        firePropertyChange("centerPosition", oldVal, newVal);
+//        repaint();
+//        GeoPosition newVal = getCenterPosition();
+//        firePropertyChange("centerPosition", oldVal, newVal);
     }
 
     /**
@@ -519,7 +693,7 @@ public class JXMapViewer extends JPanel implements DesignMode
 
         factory.addTileListener(tileLoadListener);
 
-        repaint();
+//        repaint();
     }
 
     /**
@@ -561,9 +735,8 @@ public class JXMapViewer extends JPanel implements DesignMode
         double centerY = center.getY();
 
         Dimension mapSize = getTileFactory().getMapSize(getZoom());
-        int mapHeight = (int) mapSize.getHeight() * getTileFactory().getTileSize(getZoom());
-        int mapWidth = (int) mapSize.getWidth() * getTileFactory().getTileSize(getZoom());
-
+        double mapHeight =  mapSize.getHeight() * (double) getTileFactory().getTileSize(getZoom());
+        double mapWidth =  mapSize.getWidth() * (double) getTileFactory().getTileSize(getZoom());
         if (isRestrictOutsidePanning())
         {
             Insets insets = getInsets();
@@ -625,7 +798,7 @@ public class JXMapViewer extends JPanel implements DesignMode
         this.center = new Point2D.Double(centerX, centerY);
         firePropertyChange("center", old, this.center);
         firePropertyChange("centerPosition", oldGP, this.getCenterPosition());
-        repaint();
+//        repaint();
     }
 
     /**
@@ -747,7 +920,7 @@ public class JXMapViewer extends JPanel implements DesignMode
         {
                 if (tile.getZoom() == getZoom())
                 {
-                    repaint();
+//                    repaint();
                     /* this optimization doesn't save much and it doesn't work if you
                     * wrap around the world
                     Rectangle viewportBounds = getViewportBounds();
@@ -850,6 +1023,47 @@ public class JXMapViewer extends JPanel implements DesignMode
         return pos;
     }
 
+
+    private long old_time = System.nanoTime();
+
+    double get_fps() {
+// Something like that in java  double new_time = System.getTime().nanoseconds();
+        long new_time = System.nanoTime();
+        double delta = new_time - old_time;
+        double fps = 1 / (delta * 1e-9);
+        old_time = new_time;
+        return fps;
+    };
+
+
+    private final JButton fps = new JButton();
+
+    boolean showFPS = false;
+
+    public void showFPS(boolean show){
+        if(show) {
+//            fps.setLocation((int) (getWidth() / 2d), (int) (getHeight() / 2d));
+            fps.setLocation(0,0);
+            this.add(fps);
+            showFPS = true;
+        }
+        else{
+            this.remove(fps);
+        }
+    }
+
+
+    @Override
+    public void repaint() {
+        long frame_time = System.nanoTime();
+        super.repaint();
+        frame_time = System.nanoTime() - frame_time;
+        double fps = get_fps();
+        if(showFPS){
+            this.fps.setText(String.format("%.2f fps, %.2f ms, max possible FPS: %.2f", fps, frame_time * 1e-6, 1000/(frame_time*1e-6)));
+        }
+    }
+
     /**
      * @return isNegativeYAllowed
      * @deprecated do not use
@@ -877,5 +1091,14 @@ public class JXMapViewer extends JPanel implements DesignMode
     public boolean isPanningEnabled()
     {
         return this.panningEnabled;
+    }
+
+
+    public double getAngle() {
+        return angle;
+    }
+
+    public void setAngle(double angle) {
+        this.angle = angle;
     }
 }

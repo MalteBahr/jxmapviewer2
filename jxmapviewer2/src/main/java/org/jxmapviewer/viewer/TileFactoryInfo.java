@@ -9,6 +9,7 @@
 
 package org.jxmapviewer.viewer;
 
+
 import java.awt.geom.Point2D;
 
 /**
@@ -22,6 +23,7 @@ public class TileFactoryInfo
     private int minimumZoomLevel;
     private int maximumZoomLevel;
     private int totalMapZoom;
+    private int minNonSuperTileZoomLevel;
     // the size of each tile (assumes they are square)
     private int tileSize = 256;
 
@@ -117,6 +119,7 @@ public class TileFactoryInfo
         this.minimumZoomLevel = minimumZoomLevel;
         this.maximumZoomLevel = maximumZoomLevel;
         this.totalMapZoom = totalMapZoom;
+        this.minNonSuperTileZoomLevel = minimumZoomLevel;
         this.baseURL = baseURL;
         this.xparam = xparam;
         this.yparam = yparam;
@@ -127,25 +130,32 @@ public class TileFactoryInfo
         this.tileSize = tileSize;
 
         // init the num tiles wide
-        int tilesize = this.getTileSize(0);
+//        int tilesize = this.getTileSize(0);
 
-        longitudeDegreeWidthInPixels = new double[totalMapZoom + 1];
-        longitudeRadianWidthInPixels = new double[totalMapZoom + 1];
-        mapCenterInPixelsAtZoom = new Point2D.Double[totalMapZoom + 1];
-        mapWidthInTilesAtZoom = new int[totalMapZoom + 1];
+//        longitudeDegreeWidthInPixels = new double[totalMapZoom + 1];
+//        longitudeRadianWidthInPixels = new double[totalMapZoom + 1];
+//        mapCenterInPixelsAtZoom = new Point2D.Double[totalMapZoom + 1];
+//        mapWidthInTilesAtZoom = new int[totalMapZoom + 1];
+//
+//        // for each zoom level
+//        for (int z = totalMapZoom; z >= 0; --z)
+//        {
+//            // how wide is each degree of longitude in pixels
+//            longitudeDegreeWidthInPixels[z] = tilesize / 360.0;
+//            // how wide is each radian of longitude in pixels
+//            longitudeRadianWidthInPixels[z] = tilesize / (2.0 * Math.PI);
+//            int t2 = tilesize / 2;
+//            mapCenterInPixelsAtZoom[z] = new Point2D.Double(t2, t2);
+//            mapWidthInTilesAtZoom[z] = tilesize / this.getTileSize(0);
+//            tilesize *= 2;
+//        }
 
-        // for each zoom level
-        for (int z = totalMapZoom; z >= 0; --z)
-        {
-            // how wide is each degree of longitude in pixels
-            longitudeDegreeWidthInPixels[z] = tilesize / 360.0;
-            // how wide is each radian of longitude in pixels
-            longitudeRadianWidthInPixels[z] = tilesize / (2.0 * Math.PI);
-            int t2 = tilesize / 2;
-            mapCenterInPixelsAtZoom[z] = new Point2D.Double(t2, t2);
-            mapWidthInTilesAtZoom[z] = tilesize / this.getTileSize(0);
-            tilesize *= 2;
+        mapCenterInPixelsAtZoom = new Point2D[totalMapZoom + 1];
+        for(int z = 0; z < totalMapZoom; z++){
+            mapCenterInPixelsAtZoom[z] = getMapCenterInPixelsAtZoomNotCached(z);
         }
+
+
 
     }
 
@@ -183,17 +193,26 @@ public class TileFactoryInfo
      */
     public int getMapWidthInTilesAtZoom(int zoom)
     {
-        return mapWidthInTilesAtZoom[zoom];
+        return (int)Math.pow(2,totalMapZoom - zoom);
     }
 
     /**
      * @param zoom the zoom level
      * @return the map center in pixels
      */
-    public Point2D getMapCenterInPixelsAtZoom(int zoom)
+    public Point2D getMapCenterInPixelsAtZoom(double zoom)
     {
-        return mapCenterInPixelsAtZoom[zoom];
+        return getMapCenterInPixelsAtZoomNotCached(zoom);
+//        return mapCenterInPixelsAtZoom[zoom];
     }
+
+    private Point2D getMapCenterInPixelsAtZoomNotCached(double zoom)
+    {
+        return new Point2D.Double(getTileSize(zoom) * Math.pow(2,totalMapZoom - zoom - 1), getTileSize(zoom) *  Math.pow(2,totalMapZoom - zoom - 1));
+    }
+
+
+
 
     /**
      * Returns the tile url for the specified tile at the specified zoom level. By default it will generate a tile url
@@ -233,8 +252,13 @@ public class TileFactoryInfo
      * @param zoom the zoom level
      * @return the tile size
      */
-    public int getTileSize(int zoom)
+    public int getTileSize(double zoom)
     {
+//        if(zoom < minNonSuperTileZoomLevel){
+//            int size_n = minNonSuperTileZoomLevel - zoom;
+//            return (int)(tileSize*Math.pow(2,-size_n));
+//        }
+
         return tileSize;
     }
 
@@ -242,18 +266,18 @@ public class TileFactoryInfo
      * @param zoom the zoom level
      * @return the longitude degree width in pixels
      */
-    public double getLongitudeDegreeWidthInPixels(int zoom)
+    public double getLongitudeDegreeWidthInPixels(double zoom)
     {
-        return longitudeDegreeWidthInPixels[zoom];
+        return getTileSize(zoom) * Math.pow(2,totalMapZoom - zoom) / 360D;
     }
 
     /**
      * @param zoom the zoom level
      * @return the longitude radian width in pixels
      */
-    public double getLongitudeRadianWidthInPixels(int zoom)
+    public double getLongitudeRadianWidthInPixels(double zoom)
     {
-        return longitudeRadianWidthInPixels[zoom];
+        return getTileSize(zoom) * Math.pow(2, totalMapZoom - zoom) / (2.0 * Math.PI);
     }
 
     /**
@@ -337,4 +361,11 @@ public class TileFactoryInfo
     }
 
 
+    public int getMinNonSuperTileZoom() {
+        return minNonSuperTileZoomLevel;
+    }
+
+    public void setMinNonSuperTileZoomLevel(int minNonSuperTileZoomLevel) {
+        this.minNonSuperTileZoomLevel = minNonSuperTileZoomLevel;
+    }
 }

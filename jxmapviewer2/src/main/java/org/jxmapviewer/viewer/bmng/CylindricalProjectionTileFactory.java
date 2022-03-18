@@ -22,7 +22,7 @@ public class CylindricalProjectionTileFactory extends DefaultTileFactory
     }
 
     @Override
-    public Point2D geoToPixel(GeoPosition c, int zoom)
+    public Point2D geoToPixel(GeoPosition c, double zoom)
     {
         // calc the pixels per degree
         Dimension mapSizeInTiles = getMapSize(zoom);

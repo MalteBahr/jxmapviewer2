@@ -1,7 +1,7 @@
 
 package org.jxmapviewer.viewer;
 
-import java.awt.geom.Rectangle2D;
+import javafx.geometry.BoundingBox;
 import java.util.Set;
 
 /**
@@ -13,7 +13,7 @@ public class GeoBounds
 {
 
     /** Internal representation of the bounds */
-    private Rectangle2D[] rects;
+    private BoundingBox[] rects;
 
     /**
      * Constructor.
@@ -69,15 +69,15 @@ public class GeoBounds
         {
             if (minLng > 0 && minLng < 180 && maxLng < 0)
             {
-                rects = new Rectangle2D[] {
+                rects = new BoundingBox[] {
                         // split into two rects e.g. 176.8793 to 180 and -180 to
                         // -175.0104
-                        new Rectangle2D.Double(minLng, minLat, 180 - minLng, maxLat - minLat),
-                        new Rectangle2D.Double(-180, minLat, maxLng + 180, maxLat - minLat) };
+                        new BoundingBox(minLng, minLat, 180 - minLng, maxLat - minLat),
+                        new BoundingBox(-180, minLat, maxLng + 180, maxLat - minLat) };
             }
             else
             {
-                rects = new Rectangle2D[] { new Rectangle2D.Double(minLng, minLat, maxLng - minLng, maxLat - minLat) };
+                rects = new BoundingBox[] { new BoundingBox(minLng, minLat, maxLng - minLng, maxLat - minLat) };
 
                 throw new IllegalArgumentException("GeoBounds is not valid - minLng must be less that maxLng or "
                         + "minLng must be greater than 0 and maxLng must be less than 0.");
@@ -85,7 +85,7 @@ public class GeoBounds
         }
         else
         {
-            rects = new Rectangle2D[] { new Rectangle2D.Double(minLng, minLat, maxLng - minLng, maxLat - minLat) };
+            rects = new BoundingBox[] { new BoundingBox(minLng, minLat, maxLng - minLng, maxLat - minLat) };
         }
     }
 
@@ -97,9 +97,9 @@ public class GeoBounds
     public boolean intersects(GeoBounds other)
     {
         boolean rv = false;
-        for (Rectangle2D r1 : rects)
+        for (BoundingBox r1 : rects)
         {
-            for (Rectangle2D r2 : other.rects)
+            for (BoundingBox r2 : other.rects)
             {
                 rv = r1.intersects(r2);
                 if (rv)
@@ -122,7 +122,7 @@ public class GeoBounds
      */
     public GeoPosition getNorthWest()
     {
-        return new GeoPosition(rects[0].getMaxY(), rects[0].getX());
+        return new GeoPosition(rects[0].getMaxY(), rects[0].getMinX());
     }
 
     /**
@@ -131,12 +131,12 @@ public class GeoBounds
      */
     public GeoPosition getSouthEast()
     {
-        Rectangle2D r = rects[0];
+        BoundingBox r = rects[0];
         if (rects.length > 1)
         {
             r = rects[1];
         }
-        return new GeoPosition(r.getY(), r.getMaxX());
+        return new GeoPosition(r.getMinY(), r.getMaxX());
     }
 
     /**

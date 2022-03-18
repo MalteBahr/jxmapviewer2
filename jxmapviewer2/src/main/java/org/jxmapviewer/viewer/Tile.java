@@ -13,6 +13,8 @@ import java.awt.image.BufferedImage;
 import java.lang.ref.SoftReference;
 
 import org.jxmapviewer.beans.AbstractBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Tile class represents a particular square image piece of the world bitmap at a particular zoom level.
@@ -21,6 +23,17 @@ import org.jxmapviewer.beans.AbstractBean;
 
 public class Tile extends AbstractBean
 {
+    private long delay = 1000;
+    private final long started = System.currentTimeMillis();
+    private static final Logger log = LoggerFactory.getLogger(Tile.class);
+    public void isNeeded() {
+        if(waitedLongEnough()){
+            if(!isLoading && dtf != null)
+                dtf.startLoading(this);
+        }
+    }
+
+
     /**
      * The loading priority
      */
@@ -92,7 +105,7 @@ public class Tile extends AbstractBean
      * @param priority the priority
      * @param dtf the tile factory
      */
-    Tile(int x, int y, int zoom, String url, Priority priority, TileFactory dtf)
+    Tile(int x, int y, int zoom, String url, Priority priority, TileFactory dtf, int delay)
     {
         this.url = url;
         loaded = false;
@@ -101,8 +114,10 @@ public class Tile extends AbstractBean
         this.y = y;
         this.priority = priority;
         this.dtf = dtf;
+        this.delay = delay;
         // startLoading();
     }
+
 
     /**
      * Indicates if this tile's underlying image has been successfully loaded yet.
@@ -112,7 +127,6 @@ public class Tile extends AbstractBean
     {
         return loaded;
     }
-
     /**
      * Toggles the loaded state, and fires the appropriate property change notification
      * @param loaded the loaded flag
@@ -164,6 +178,10 @@ public class Tile extends AbstractBean
         }
 
         return img;
+    }
+
+    private boolean waitedLongEnough() {
+        return (System.currentTimeMillis() - started) > delay;
     }
 
     /**
@@ -239,5 +257,16 @@ public class Tile extends AbstractBean
     {
         return y;
     }
+
+
+    public long getDelay() {
+        return delay;
+    }
+
+    public void setDelay(long delay) {
+        this.delay = delay;
+    }
+
+
 
 }

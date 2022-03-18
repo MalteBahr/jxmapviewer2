@@ -5,13 +5,14 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
+import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.painter.Painter;
 
 /**
  * Paints a selection rectangle
  * @author Martin Steiger
  */
-public class SelectionPainter implements Painter<Object>
+public class SelectionPainter implements Painter<JXMapViewer>
 {
     private Color fillColor = new Color(128, 192, 255, 128);
     private Color frameColor = new Color(0, 0, 255, 128);
@@ -27,7 +28,7 @@ public class SelectionPainter implements Painter<Object>
     }
 
     @Override
-    public void paint(Graphics2D g, Object t, int width, int height)
+    public void paint(Graphics2D g, JXMapViewer t, int width, int height)
     {
         Rectangle rc = adapter.getRectangle();
 

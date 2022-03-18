@@ -15,9 +15,9 @@ import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jxmapviewer.JXMapViewer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a standard waypoint renderer.
@@ -25,8 +25,8 @@ import org.jxmapviewer.JXMapViewer;
  */
 public class DefaultWaypointRenderer implements WaypointRenderer<Waypoint>
 {
-    private static final Log log = LogFactory.getLog(DefaultWaypointRenderer.class);
-    
+
+    private static final Logger log = LoggerFactory.getLogger(DefaultWaypointRenderer.class);
     private BufferedImage img = null;
 
     /**

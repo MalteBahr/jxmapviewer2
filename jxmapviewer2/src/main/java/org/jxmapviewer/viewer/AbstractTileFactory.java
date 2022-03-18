@@ -24,12 +24,12 @@ import java.util.concurrent.ThreadFactory;
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jxmapviewer.cache.LocalCache;
 import org.jxmapviewer.cache.NoOpLocalCache;
 import org.jxmapviewer.util.ProjectProperties;
 import org.jxmapviewer.viewer.util.GeoUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The <code>AbstractTileFactory</code> provides
@@ -37,8 +37,8 @@ import org.jxmapviewer.viewer.util.GeoUtil;
  */
 public abstract class AbstractTileFactory extends TileFactory
 {
-    private static final Log log = LogFactory.getLog(AbstractTileFactory.class);
 
+    private static final Logger log = LoggerFactory.getLogger(AbstractTileFactory.class);
     /**
      * Note that the name and version are actually set by Gradle
      * so there is no need to bump a version manually when new release
@@ -66,6 +66,19 @@ public abstract class AbstractTileFactory extends TileFactory
         super(info);
     }
 
+
+    public TileWrapper getTileWrapper(int x, int y, int zoom){
+        Tile t = getTile(x, y, zoom,true,2500);
+
+        Tile superTileUnscaled = getTile(x / 4, y / 4, zoom + 2, true, 0);
+        String url ="supertile"+ getInfo().getTileUrl(x, y, zoom);
+
+        if(tileMap.get(url) == null){
+            tileMap.put(url, new VirtualTile(x, y, zoom, superTileUnscaled, getTileSize(zoom)));
+        }
+        return new TileWrapper(t, tileMap.get(url), this);
+    }
+
     /**
      * Returns the tile that is located at the given tilePoint
      * for this zoom. For example, if getMapSize() returns 10x20
@@ -75,10 +88,10 @@ public abstract class AbstractTileFactory extends TileFactory
     @Override
     public Tile getTile(int x, int y, int zoom)
     {
-        return getTile(x, y, zoom, true);
+        return getTile(x, y, zoom, true,1000);
     }
 
-    private Tile getTile(int tpx, int tpy, int zoom, boolean eagerLoad)
+    private Tile getTile(int tpx, int tpy, int zoom, boolean eagerLoad, int delay)
     {
         // wrap the tiles horizontally --> mod the X with the max width
         // and use that
@@ -106,12 +119,17 @@ public abstract class AbstractTileFactory extends TileFactory
         {
             if (!GeoUtil.isValidTile(tileX, tileY, zoom, getInfo()))
             {
-                tile = new Tile(tileX, tileY, zoom);
+                tile = new EmptyTile(tileX,tileY,zoom,getTileSize(zoom));
             }
             else
             {
-                tile = new Tile(tileX, tileY, zoom, url, pri, this);
-                startLoading(tile);
+            if(getInfo().getMinNonSuperTileZoom() > zoom){
+
+                Tile t = getTile(tpx/2,tpy/2,zoom+1);
+                tile = new VirtualTile(tpx,tpy,zoom,t,getTileSize(zoom));
+            }else {
+                tile = new Tile(tileX, tileY, zoom, url, pri, this,delay);
+            }
             }
             tileMap.put(url, tile);
         }
@@ -142,6 +160,7 @@ public abstract class AbstractTileFactory extends TileFactory
          * eagerlyLoad(tilePoint.getX()*2+1, tilePoint.getY()*2, zoom-1); eagerlyLoad(tilePoint.getX()*2,
          * tilePoint.getY()*2+1, zoom-1); eagerlyLoad(tilePoint.getX()*2+1, tilePoint.getY()*2+1, zoom-1); } } } }
          */
+
 
         return tile;
     }
@@ -427,6 +446,7 @@ public abstract class AbstractTileFactory extends TileFactory
         {
             InputStream ins = localCache.get(url);
             if (ins == null) {
+                log.trace("loading from web: " + url);
                 URLConnection connection = url.openConnection();
                 connection.setRequestProperty("User-Agent", userAgent);
                 addCustomRequestProperties(connection);

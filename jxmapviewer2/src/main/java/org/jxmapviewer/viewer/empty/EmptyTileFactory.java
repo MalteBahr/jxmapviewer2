@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 import org.jxmapviewer.viewer.Tile;
 import org.jxmapviewer.viewer.TileFactory;
 import org.jxmapviewer.viewer.TileFactoryInfo;
+import org.jxmapviewer.viewer.TileWrapper;
 
 /**
  * A null implementation of TileFactory. Draws empty areas.
@@ -34,7 +35,8 @@ public class EmptyTileFactory extends TileFactory
      */
     public EmptyTileFactory()
     {
-        this(new TileFactoryInfo("EmptyTileFactory 256x256", 1, 15, 17, 256, true, true, "", "x", "y", "z"));
+        this(new TileFactoryInfo("EmptyTileFactory 256x256", 1, 15, 15, 256, true, true, "", "x", "y", "z"));
+
     }
 
     /** 
@@ -44,7 +46,7 @@ public class EmptyTileFactory extends TileFactory
     public EmptyTileFactory(TileFactoryInfo info)
     {
         super(info);
-        int tileSize = info.getTileSize(info.getMinimumZoomLevel());
+        int tileSize = info.getTileSize(info.getMaximumZoomLevel());
         emptyTile = new BufferedImage(tileSize, tileSize, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = emptyTile.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -56,6 +58,11 @@ public class EmptyTileFactory extends TileFactory
         g.fillOval(tileSize - 90, 50, 20, 20);
         g.fillOval(tileSize / 2 - 10, tileSize / 2 - 10, 20, 20);
         g.dispose();
+    }
+
+    @Override
+    public TileWrapper getTileWrapper(int x, int y, int zoom) {
+        return new TileWrapper(getTile(x, y, zoom), getTile(x, y, zoom), this);
     }
 
     /**

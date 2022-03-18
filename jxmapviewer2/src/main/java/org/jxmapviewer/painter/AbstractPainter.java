@@ -370,7 +370,7 @@ public abstract class AbstractPainter<T> extends AbstractBean implements Painter
     protected abstract void doPaint(Graphics2D g, T object, int width, int height);
 
     @Override
-    public final void paint(Graphics2D g, T obj, int width, int height) {
+    public void paint(Graphics2D g, T obj, int width, int height) {
         if (g == null) {
             throw new NullPointerException("The Graphics2D must be supplied");
         }

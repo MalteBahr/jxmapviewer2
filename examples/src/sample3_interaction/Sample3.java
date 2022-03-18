@@ -48,7 +48,7 @@ public class Sample3
         GeoPosition frankfurt = new GeoPosition(50.11, 8.68);
 
         // Set the focus
-        mapViewer.setZoom(7);
+        mapViewer.setZoom(6);
         mapViewer.setAddressLocation(frankfurt);
 
         // Add interactions

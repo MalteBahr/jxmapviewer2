@@ -71,6 +71,7 @@ public class Sample4
                 new MyWaypoint("D", Color.MAGENTA, darmstadt),
                 new MyWaypoint("O", Color.GREEN, offenbach)));
 
+
         // Create a waypoint painter that takes all the waypoints
         WaypointPainter<MyWaypoint> waypointPainter = new WaypointPainter<MyWaypoint>();
         waypointPainter.setWaypoints(waypoints);

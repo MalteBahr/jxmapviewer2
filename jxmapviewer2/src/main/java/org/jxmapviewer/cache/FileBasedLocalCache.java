@@ -1,5 +1,8 @@
 package org.jxmapviewer.cache;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,17 +14,14 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A file/folder-based cache
  */
 public class FileBasedLocalCache implements LocalCache {
 
-    private static final Log log = LogFactory.getLog(FileBasedLocalCache.class);
-
+    private static final Logger log = LoggerFactory.getLogger(FileBasedLocalCache.class);
     private final File cacheDir;
     private final boolean checkForUpdates;
 
@@ -50,11 +50,15 @@ public class FileBasedLocalCache implements LocalCache {
 
         if (checkForUpdates)
         {
-            if (isUpdateAvailable(url, localFile))
-            {
-                // there is an update available, so don't return cached version
-                return null;
+            if (isOlderThan30Days(url, localFile)) {
+
             }
+
+//            if (isUpdateAvailable(url, localFile))
+//            {
+//                // there is an update available, so don't return cached version
+//                return null;
+//            }
         }
         try {
             return new FileInputStream(localFile);
@@ -63,8 +67,14 @@ public class FileBasedLocalCache implements LocalCache {
         }
     }
 
+    private boolean isOlderThan30Days(URL url, File localFile) {
+        return TimeUnit.DAYS.convert(System.currentTimeMillis() - localFile.lastModified(), TimeUnit.DAYS)
+                > 30;
+    }
+
     @Override
     public void put(URL url, InputStream data) throws IOException {
+
         File localFile = getLocalFile(url);
         localFile.getParentFile().mkdirs();
         FileOutputStream out = new FileOutputStream(localFile);
@@ -98,6 +108,7 @@ public class FileBasedLocalCache implements LocalCache {
         }
         if (query != null)
         {
+            query = query.replaceFirst("(access_token(.)*?)($|&)", "");
             sb.append('?');
             sb.append(query);
         }

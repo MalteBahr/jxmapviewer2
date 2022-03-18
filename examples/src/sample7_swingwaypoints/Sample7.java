@@ -1,11 +1,13 @@
 package sample7_swingwaypoints;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.swing.JFrame;
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import javax.swing.event.MouseInputListener;
 
 import org.jxmapviewer.JXMapViewer;
@@ -27,7 +29,7 @@ import org.jxmapviewer.viewer.WaypointPainter;
  * @author Daniel Stahr
  */
 public class Sample7 {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // Create a TileFactoryInfo for OSM
         TileFactoryInfo info = new OSMTileFactoryInfo();
         DefaultTileFactory tileFactory = new DefaultTileFactory(info);
@@ -65,7 +67,7 @@ public class Sample7 {
                 new SwingWaypoint("Wiesbaden", wiesbaden),
                 new SwingWaypoint("Mainz", mainz),
                 new SwingWaypoint("Darmstadt", darmstadt),
-                new SwingWaypoint("Offenbach", offenbach)));
+                new SwingWaypoint(ImageIO.read(new File("C:\\Users\\Malte\\IdeaProjects\\jxmapviewer2\\images\\StaticTractor.png")),offenbach,50,50)));
 
         // Set the overlay painter
         WaypointPainter<SwingWaypoint> swingWaypointPainter = new SwingWaypointOverlayPainter();

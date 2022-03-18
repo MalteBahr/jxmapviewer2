@@ -1,11 +1,11 @@
 package org.jxmapviewer.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Project properties.
@@ -24,10 +24,12 @@ public enum ProjectProperties {
     private static final String PROP_VERSION = "version";
     private static final String PROP_NAME = "name";
 
-    private final Log log = LogFactory.getLog(ProjectProperties.class);
+    private static final Logger log = LoggerFactory.getLogger(ProjectProperties.class);
     private final Properties props = new Properties();
 
     private ProjectProperties() {
+
+        final Logger log = LoggerFactory.getLogger(ProjectProperties.class);
         log.debug("Loading project properties...");
 
         try (InputStream is = ProjectProperties.class.getResourceAsStream(PROPERTIES_FILE)) {

@@ -9,6 +9,9 @@
 
 package org.jxmapviewer.viewer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -19,17 +22,14 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 /**
  * An implementation only class for now. For internal use only.
  * @author joshua.marinacci@sun.com
  */
 public class TileCache
 {
-    private static final Log log = LogFactory.getLog(TileCache.class);
-    
+
+    private static final Logger log = LoggerFactory.getLogger(TileCache.class);
     private Map<URI, BufferedImage> imgmap = new HashMap<URI, BufferedImage>();
     private LinkedList<URI> imgmapAccessQueue = new LinkedList<URI>();
     private int imagesize = 0;

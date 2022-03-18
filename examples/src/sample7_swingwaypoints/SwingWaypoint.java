@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 
 /**
  * A waypoint that is represented by a button on the map.
@@ -15,7 +16,7 @@ import java.awt.event.MouseListener;
  */
 public class SwingWaypoint extends DefaultWaypoint {
     private final JButton button;
-    private final String text;
+    private String text = "";
 
     public SwingWaypoint(String text, GeoPosition coord) {
         super(coord);
@@ -23,6 +24,26 @@ public class SwingWaypoint extends DefaultWaypoint {
         button = new JButton(text.substring(0, 1));
         button.setSize(24, 24);
         button.setPreferredSize(new Dimension(24, 24));
+        button.addMouseListener(new SwingWaypointMouseListener());
+        button.setVisible(true);
+    }
+
+    public SwingWaypoint(BufferedImage img, GeoPosition coord) {
+        super(coord);
+        ImageIcon icon  = new ImageIcon(img.getScaledInstance(24, 24,0));
+        button = new JButton(icon);
+        button.setSize(24, 24);
+        button.setPreferredSize(new Dimension(24, 24));
+        button.addMouseListener(new SwingWaypointMouseListener());
+        button.setVisible(true);
+    }
+
+    public SwingWaypoint(BufferedImage img, GeoPosition coord, int width, int height) {
+        super(coord);
+        ImageIcon icon  = new ImageIcon(img.getScaledInstance(width, height,0));
+        button = new JButton(icon);
+        button.setSize(width, height);
+        button.setPreferredSize(new Dimension(width, height));
         button.addMouseListener(new SwingWaypointMouseListener());
         button.setVisible(true);
     }

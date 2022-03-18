@@ -35,6 +35,7 @@ public class SelectionAdapter extends MouseAdapter
         if (e.getButton() != MouseEvent.BUTTON3)
             return;
 
+
         startPos.setLocation(e.getX(), e.getY());
         endPos.setLocation(e.getX(), e.getY());
 
