@@ -79,7 +79,7 @@ public abstract class TileFactory
      * @param zoom the zoom level of the world bitmap
      * @return the converted GeoPosition
      */
-    public GeoPosition pixelToGeo(Point2D pixelCoordinate, double zoom)
+    public GeoPosition pixelToGeo(Point2D pixelCoordinate, int zoom)
     {
         return GeoUtil.getPosition(pixelCoordinate, zoom, getInfo());
     }
@@ -92,7 +92,7 @@ public abstract class TileFactory
      * @return the pixel point
      */
 
-    public Point2D geoToPixel(GeoPosition c, double zoomLevel)
+    public Point2D geoToPixel(GeoPosition c, int zoomLevel)
     {
         return GeoUtil.getBitmapCoordinate(c, zoomLevel, getInfo());
     }

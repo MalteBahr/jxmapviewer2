@@ -17,8 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-import javafx.scene.shape.Rectangle;
-import org.jxmapviewer.jfx.JFXMapViewer;
+import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.viewer.GeoBounds;
 import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.TileFactory;
@@ -163,7 +162,7 @@ public final class GeoUtil
      * @param mapViewer The map viewer.
      * @return Returns the bounds.
      */
-    public static GeoBounds getMapBounds(JFXMapViewer mapViewer)
+    public static GeoBounds getMapBounds(JXMapViewer mapViewer)
     {
         return new GeoBounds(getMapGeoBounds(mapViewer));
     }
@@ -174,11 +173,11 @@ public final class GeoUtil
      * @return Returns the set of two <code>GeoPosition</code> objects that represent the north west and south east
      * corners of the map.
      */
-    private static Set<GeoPosition> getMapGeoBounds(JFXMapViewer mapViewer)
+    private static Set<GeoPosition> getMapGeoBounds(JXMapViewer mapViewer)
     {
         Set<GeoPosition> set = new HashSet<GeoPosition>();
-        TileFactory tileFactory = mapViewer.getFactory();
-        double zoom = mapViewer.getZoomLevel();
+        TileFactory tileFactory = mapViewer.getTileFactory();
+        int zoom = mapViewer.getZoom();
         Rectangle bounds = mapViewer.getViewportBounds();
         Point2D pt = new Point2D.Double(bounds.getX(), bounds.getY());
         set.add(tileFactory.pixelToGeo(pt, zoom));

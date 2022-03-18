@@ -12,10 +12,7 @@ package org.jxmapviewer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.VolatileImage;
 import java.beans.DesignMode;
@@ -354,7 +351,7 @@ public class JXMapViewer extends JPanel implements DesignMode
     protected void drawMapTiles(final Graphics g, final int zoom, Rectangle viewportBounds)
     {
         int size = getTileFactory().getTileSize(zoom);
-        Dimension mapSize = getTileFactory().getMapSize(zoom);
+        Dimension2D mapSize = getTileFactory().getMapSize(zoom);
         // calculate the "visible" viewport area in tiles
         int numWide = (viewportBounds.width * 2) / size + 2;
         int numHigh = (viewportBounds.height * 2) / size + 2;
@@ -454,7 +451,7 @@ public class JXMapViewer extends JPanel implements DesignMode
         }
     }
 
-    private boolean isTileOnMap(int x, int y, Dimension mapSize)
+    private boolean isTileOnMap(int x, int y, Dimension2D mapSize)
     {
         return (y >= 0 && y < mapSize.getHeight()) &&
                   (isInfiniteMapRendering() || x >= 0 && x < mapSize.getWidth());
@@ -564,13 +561,13 @@ public class JXMapViewer extends JPanel implements DesignMode
         // if(zoom >= 0 && zoom <= 15 && zoom != this.zoom) {
         int oldzoom = this.zoomLevel;
         Point2D oldCenter = getCenter();
-        Dimension oldMapSize = getTileFactory().getMapSize(oldzoom);
+        Dimension2D oldMapSize = getTileFactory().getMapSize(oldzoom);
         double oldTileSize = getTileFactory().getTileSize(oldzoom);
 
         this.zoomLevel = zoom;
         this.firePropertyChange("zoom", oldzoom, zoom);
 
-        Dimension mapSize = getTileFactory().getMapSize(zoom);
+        Dimension2D mapSize = getTileFactory().getMapSize(zoom);
         double newTileSize = getTileFactory().getTileSize(zoom);
 
         Point2D.Double pt = new Point2D.Double(oldCenter.getX() * (mapSize.getWidth() * newTileSize / (oldMapSize.getWidth() * oldTileSize)), oldCenter.getY()
@@ -734,7 +731,7 @@ public class JXMapViewer extends JPanel implements DesignMode
         double centerX = center.getX();
         double centerY = center.getY();
 
-        Dimension mapSize = getTileFactory().getMapSize(getZoom());
+        Dimension2D mapSize = getTileFactory().getMapSize(getZoom());
         double mapHeight =  mapSize.getHeight() * (double) getTileFactory().getTileSize(getZoom());
         double mapWidth =  mapSize.getWidth() * (double) getTileFactory().getTileSize(getZoom());
         if (isRestrictOutsidePanning())

@@ -6,6 +6,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
 
 import org.jxmapviewer.JXMapViewer;
@@ -36,11 +37,11 @@ public class ZoomMouseWheelListenerCursor implements MouseWheelListener
         double dx = current.x - bound.width / 2;
         double dy = current.y - bound.height / 2;
         
-        Dimension oldMapSize = viewer.getTileFactory().getMapSize(viewer.getZoom());
+        Dimension2D oldMapSize = viewer.getTileFactory().getMapSize(viewer.getZoom());
 
         viewer.setZoom(viewer.getZoom() + evt.getWheelRotation());
         
-        Dimension mapSize = viewer.getTileFactory().getMapSize(viewer.getZoom());
+        Dimension2D mapSize = viewer.getTileFactory().getMapSize(viewer.getZoom());
 
         Point2D center = viewer.getCenter();
 
