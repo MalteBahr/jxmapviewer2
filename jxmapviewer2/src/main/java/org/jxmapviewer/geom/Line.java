@@ -87,20 +87,21 @@ public class Line implements Geometry{
                 int[] ypoints = new int[n];
                 for(int i = 0; i < n; i++){
                     Point2D pos = cachedFactory.geoToPixel(positionList.get(i), object.getZoom());
-                    xpoints[i] = (int)Math.round(pos.getX() - offx);
-                    ypoints[i] = (int) Math.round(pos.getY() - offy);
+                    xpoints[i] = (int) (Math.round(pos.getX() - offx));
+                    ypoints[i] = (int) (Math.round(pos.getY() - offy));
                 }
 
 
-                Path2D path = new Path2D.Double();
+//                Path2D path = new Path2D.Double();
+//
+//                path.moveTo(xpoints[0], ypoints[0]);
+//                for(int i = 1; i < xpoints.length; ++i) {
+//                    path.lineTo(xpoints[i], ypoints[i]);
+//                }
+////                path.closePath();
 
-                path.moveTo(xpoints[0], ypoints[0]);
-                for(int i = 1; i < xpoints.length; ++i) {
-                    path.lineTo(xpoints[i], ypoints[i]);
-                }
-                path.closePath();
 
-                g2d.draw(path);
+                g2d.drawPolyline(xpoints, ypoints, n);
                 g2d.translate(-offx, -offy);
 //                if (positionList.size() > 0) {
 //                    Point2D start = object.getTileFactory().geoToPixel(positionList.get(0), object.getZoom());
