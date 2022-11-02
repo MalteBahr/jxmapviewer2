@@ -37,11 +37,11 @@ public class ZoomMouseWheelListenerCursor implements MouseWheelListener
         double dx = current.x - bound.width / 2;
         double dy = current.y - bound.height / 2;
         
-        Dimension2D oldMapSize = viewer.getTileFactory().getMapSize(viewer.getZoom());
+        Dimension oldMapSize = viewer.getTileFactory().getMapSize(viewer.getZoom());
 
         viewer.setZoom(viewer.getZoom() + evt.getWheelRotation());
         
-        Dimension2D mapSize = viewer.getTileFactory().getMapSize(viewer.getZoom());
+        Dimension mapSize = viewer.getTileFactory().getMapSize(viewer.getZoom());
 
         Point2D center = viewer.getCenter();
 

@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 
 /**
  * Listens to single mouse clicks on the map and returns the GeoPosition
@@ -60,9 +61,13 @@ public abstract class MapMouseListener extends MouseAdapter {
             return;
 
         if ((left)) {
-            if(mousePressed(getGeoPosition(evt.getX(),evt.getY()))){
+            if(mousePressed(getGeoPosition(evt.getX(), evt.getY())))
                 evt.consume();
-            }
+
+
+//            if(mousePressed(getGeoPosition(evt.getX(),evt.getY()))){
+//                evt.consume();
+//            }
         }
     }
 
@@ -80,11 +85,37 @@ public abstract class MapMouseListener extends MouseAdapter {
     }
 
     private GeoPosition getGeoPosition(int screenX, int screenY){
-            Rectangle bounds = viewer.getViewportBounds();
-            int x = bounds.x + screenX;
-            int y = bounds.y + screenY;
-            Point pixelCoordinates = new Point(x, y);
+        Rectangle bounds = viewer.getViewportBounds();
+        int x = bounds.x + screenX;
+        int y = bounds.y + screenY;
+
+        Point2D center = viewer.getCenter();
+        double vx =  (x - center.getX());
+        double vy = (y - center.getY());
+
+        double alpha = - viewer.getAngle();
+        double vx2 = Math.cos(alpha)*vx - Math.sin(alpha)*vy;
+        double vy2 = Math.sin(alpha)*vx + Math.cos(alpha)*vy;
+
+        double x2 = center.getX() + vx2;
+        double y2 = center.getY() + vy2;
+
+        Point pixelCoordinates = new Point((int)x2,(int) y2);
         return viewer.getTileFactory().pixelToGeo(pixelCoordinates, viewer.getZoom());
+
+
+
+//            Rectangle bounds = viewer.getViewportBounds();
+//
+//
+//
+//            int x = bounds.x + screenX;
+//            int y = bounds.y + screenY;
+//
+//
+//
+//            Point pixelCoordinates = new Point(x, y);
+//        return viewer.getTileFactory().pixelToGeo(pixelCoordinates, viewer.getZoom());
     }
 
 

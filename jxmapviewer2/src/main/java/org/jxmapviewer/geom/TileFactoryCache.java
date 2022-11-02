@@ -47,8 +47,7 @@ public class TileFactoryCache {
 
 
     public Point2D geoToPixelPrivate(GeoPosition c, int zoomLevel) {
-        return new Point2D.Double();
-//        return GeoUtil.getBitmapCoordinate(c, zoomLevel, tileFactory.getInfo());
+        return GeoUtil.getBitmapCoordinate(c, zoomLevel, tileFactory.getInfo());
     }
 
     public TileFactory getTileFactory() {

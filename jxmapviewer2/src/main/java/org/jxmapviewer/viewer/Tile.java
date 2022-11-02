@@ -11,7 +11,14 @@ package org.jxmapviewer.viewer;
 
 import java.awt.image.BufferedImage;
 import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
+import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
+import javafx.util.Duration;
 import org.jxmapviewer.beans.AbstractBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +87,7 @@ public class Tile extends AbstractBean
     /**
      * The image loaded for this Tile
      */
-    SoftReference<BufferedImage> image = new SoftReference<BufferedImage>(null);
+    WeakReference<BufferedImage> image = new WeakReference<BufferedImage>(null);
 
     /**
      * Create a new Tile at the specified tile point and zoom level
@@ -94,6 +101,13 @@ public class Tile extends AbstractBean
         this.zoom = zoom;
         this.x = x;
         this.y = y;
+
+
+
+    }
+
+    private WeakReference<BufferedImage> getImagePriv() {
+        return image;
     }
 
     /**

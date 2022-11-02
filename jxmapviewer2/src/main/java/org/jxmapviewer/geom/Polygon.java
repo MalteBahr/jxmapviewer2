@@ -17,7 +17,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Polygon implements Geometry {
 
-    private static final double EPSILON_PIXEL_DISTANCE = 5;
+    private static final double EPSILON_PIXEL_DISTANCE = 2;
     private final List<GeoPosition> positionList = new CopyOnWriteArrayList<>();
     private final List<List<GeoPosition>> fillRectangles = new CopyOnWriteArrayList<>();
 
@@ -131,13 +131,19 @@ public class Polygon implements Geometry {
 
         clippingTime = System.nanoTime() - clippingTime;
 
+//        System.out.println("clipping time: " +  clippingTime);
         long drawingTime = System.nanoTime();
 
 //        List<Point2D> points = getPoints(object.getTileFactory(), object.getZoom());
         Graphics2D g2d = (Graphics2D) g.create();
 
+//        System.out.println("drawing time 1: " + (System.nanoTime() -   drawingTime));
+        drawingTime = System.nanoTime();
+
         g2d.translate(offx, offy);
 
+//        System.out.println("drawing time 2: " + (System.nanoTime() -   drawingTime));
+        drawingTime = System.nanoTime();
 //        long geopositionTranslation = System.nanoTime();
 //        geopositionTranslation = System.nanoTime() - geopositionTranslation;
 //
@@ -169,8 +175,14 @@ public class Polygon implements Geometry {
             for (Style style : styles) {
 
                 style.applyStroke(g2d);
+
+//                System.out.println("drawing time 3: " + (System.nanoTime() -   drawingTime));
+                drawingTime = System.nanoTime();
+
                 g2d.drawPolygon(xpoints, ypoints, xpoints.length);
 
+//                System.out.println("drawing time 4: " + (System.nanoTime() -   drawingTime));
+                drawingTime = System.nanoTime();
 //                drawPolygon(g2d, xpoints, ypoints, points.size(), zoomToEpsilon.get(object.getZoom()));
 //                drawPolygon = System.nanoTime() - drawPolygon;
 
@@ -179,6 +191,8 @@ public class Polygon implements Geometry {
 
                 style.applyFill(g2d);
 
+//                System.out.println("drawing time 5: " + (System.nanoTime() -   drawingTime));
+                drawingTime = System.nanoTime();
                 if (fillRectangles.size() != 0) {
 
                     for (List<Point2D> polyPoints : clippedFill) {
@@ -190,9 +204,15 @@ public class Polygon implements Geometry {
                             ys[i] = (int) (polyPoints.get(i).getY() - offy);
                         }
                         g2d.fillPolygon( xs, ys, polyPoints.size());
+
+//                        System.out.println("drawing time 6: " + (System.nanoTime() -   drawingTime));
+                        drawingTime = System.nanoTime();
                     }
                 } else {
                     g2d.fillPolygon(xpoints, ypoints, points.size());
+
+//                    System.out.println("drawing time 7: " + (System.nanoTime() -   drawingTime));
+                    drawingTime = System.nanoTime();
                 }
 //                if (fillRectangles.size() != 0) {
 //                    for (GeoPosition[] rect : fillRectangles) {
@@ -227,13 +247,22 @@ public class Polygon implements Geometry {
             }
             g2d.translate(-offx,- offy);
 
+//        System.out.println("drawing time 8: " + (System.nanoTime() -   drawingTime));
+        drawingTime = System.nanoTime();
             for(Style style : styles){
                 style.applyPoints(g2d, getPoints(object.getTileFactory(), object.getZoom()));
             }
+
+//        System.out.println("drawing time 9: " + (System.nanoTime() -   drawingTime));
+        drawingTime = System.nanoTime();
 //            g2d.translate(-(int) off_x, -(int) off_y);
             g2d.dispose();
 
+//        System.out.println("drawing time 10: " + (System.nanoTime() -   drawingTime));
+        drawingTime = System.nanoTime();
         drawingTime = System.nanoTime() - drawingTime;
+//        System.out.println("drawing time: " +  drawingTime);
+
 //        System.out.println("clippingtime: " + clippingTime + " drawingTIme:" + drawingTime + " fraction: " + clippingTime/(double)drawingTime);
     }
 

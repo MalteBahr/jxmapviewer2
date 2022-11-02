@@ -35,7 +35,7 @@ public final class GeoUtil
      * @param info the tile factory info
      * @return the size of the map at the given zoom, in tiles (num tiles tall by num tiles wide)
      */
-    public static Dimension2D getMapSize(int zoom, TileFactoryInfo info)
+    public static Dimension getMapSize(int zoom, TileFactoryInfo info)
     {
         return new Dimension(info.getMapWidthInTilesAtZoom(zoom), info.getMapWidthInTilesAtZoom(zoom));
     }

@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -24,6 +25,9 @@ import java.util.concurrent.ThreadFactory;
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
 
+import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
+import javafx.util.Duration;
 import org.jxmapviewer.cache.LocalCache;
 import org.jxmapviewer.cache.NoOpLocalCache;
 import org.jxmapviewer.util.ProjectProperties;
@@ -64,8 +68,31 @@ public abstract class AbstractTileFactory extends TileFactory
     public AbstractTileFactory(TileFactoryInfo info)
     {
         super(info);
+
+
+        ScheduledService<Void> service = new ScheduledService<Void>() {
+            @Override
+            protected Task<Void> createTask() {
+                return new Task<Void>() {
+                    @Override
+                    protected Void call() throws Exception {
+                        System.out.println("tilemap null/all: " + tileMap.values().stream().filter(tile -> tile.image.get()==null).count() +"/" + tileMap.size());
+                        return null;
+                    }
+                };
+            }
+        };
+        service.setOnFailed((evt) -> {
+            if (evt.getSource().getException() != null) {
+                evt.getSource().getException().printStackTrace();
+            }
+        });
+        service.setPeriod(Duration.millis(5000));
+        service.start();
     }
 
+
+    HashMap<String, TileWrapper> wrapperHashMap = new HashMap<>();
 
     public TileWrapper getTileWrapper(int x, int y, int zoom){
         Tile t = getTile(x, y, zoom,true,2500);
@@ -73,10 +100,16 @@ public abstract class AbstractTileFactory extends TileFactory
         Tile superTileUnscaled = getTile(x / 4, y / 4, zoom + 2, true, 0);
         String url ="supertile"+ getInfo().getTileUrl(x, y, zoom);
 
-        if(tileMap.get(url) == null){
+        if(tileMap.get(url) == null)
             tileMap.put(url, new VirtualTile(x, y, zoom, superTileUnscaled, getTileSize(zoom)));
-        }
-        return new TileWrapper(t, tileMap.get(url), this);
+
+
+        String wrapperUrl = "x" + x + "y" + y + "zoom" + zoom;
+
+        if(wrapperHashMap.get(wrapperUrl) == null)
+            wrapperHashMap.put(wrapperUrl, new TileWrapper(t, tileMap.get(url), this));
+
+        return wrapperHashMap.get(wrapperUrl);
     }
 
     /**
@@ -409,7 +442,7 @@ public abstract class AbstractTileFactory extends TileFactory
                             @Override
                             public void run()
                             {
-                                tile.image = new SoftReference<BufferedImage>(i);
+                                tile.image = new WeakReference<BufferedImage>(i);
                                 tile.setLoaded(true);
                                 fireTileLoadedEvent(tile);
                             }

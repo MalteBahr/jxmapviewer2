@@ -1,18 +1,22 @@
 package org.jxmapviewer.viewer;
 
 
+import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
+import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 
 public class VirtualTile extends Tile {
     private static final Logger log = LoggerFactory.getLogger(VirtualTile.class);
     private final Tile t;
     private final int tilesize;
-    private SoftReference<BufferedImage> resizedImage;
+    private WeakReference<BufferedImage> resizedImage;
 
     public VirtualTile(int tpx, int tpy, int zoom, Tile t, int tilesize) {
         super(tpx,tpy,zoom);
@@ -58,7 +62,7 @@ public class VirtualTile extends Tile {
             BufferedImage res = img.getSubimage(offX, offY, tilesize / factor, tilesize / factor);
 
 
-            resizedImage = new SoftReference<>(resize(res, tilesize, tilesize));
+            resizedImage = new WeakReference<>(resize(res, tilesize, tilesize));
             return resizedImage.get();
         }
         return null;

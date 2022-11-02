@@ -3,6 +3,7 @@ package org.jxmapviewer.painter;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.geom.Feature;
 import org.jxmapviewer.geom.Geometry;
+import org.w3c.dom.css.Rect;
 
 import java.awt.*;
 import java.util.HashSet;
@@ -32,12 +33,18 @@ public class DefaultFeaturePainter extends AbstractPainter<JXMapViewer> {
 
         int count = 0;
         for( Feature<? extends Geometry> f : features){
-            if(f.getGeom().getBounds(object.getTileFactory(), object.getZoom()) == null || f.getGeom().getBounds(object.getTileFactory(), object.getZoom()).intersects(viewportBounds)){
+            if(f.getGeom().getBounds(object.getTileFactory(), object.getZoom()) == null || f.getGeom().getBounds(object.getTileFactory(), object.getZoom()).intersects(increaseViewerBounds(viewportBounds))){
                 f.doPaint(g,object,width,height);
                 count++;
             }
         }
         g.translate(viewportBounds.getX(), viewportBounds.getY());
 //        System.out.println("feature count drawn: " + count);
+    }
+
+    private Rectangle increaseViewerBounds(Rectangle viewportBounds) {
+        Rectangle rectangle = new Rectangle(viewportBounds);
+        rectangle.grow(viewportBounds.width,viewportBounds.height);
+        return rectangle;
     }
 }

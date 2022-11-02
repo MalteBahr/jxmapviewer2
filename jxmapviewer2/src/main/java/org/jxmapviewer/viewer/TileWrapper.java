@@ -12,6 +12,28 @@ public class TileWrapper {
         this.tile = tile;
         this.superTile = superTile;
         this.tileFactory = tileFactory;
+
+//        ScheduledService<Void> service = new ScheduledService<Void>() {
+//            @Override
+//            protected Task<Void> createTask() {
+//                return new Task<Void>() {
+//                    @Override
+//                    protected Void call() throws Exception {
+//                        System.out.println("tile:"  + (tile.image.get() == null));
+//                        System.out.println("supertile:"  + (superTile.image.get() == null));
+//                        return null;
+//                    }
+//                };
+//            }
+//        };
+//        service.setOnFailed((evt) -> {
+//            if (evt.getSource().getException() != null) {
+//                evt.getSource().getException().printStackTrace();
+//            }
+//        });
+//        service.setPeriod(Duration.millis(5000));
+//        service.start();
+
     }
 
 

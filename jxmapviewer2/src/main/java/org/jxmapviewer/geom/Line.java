@@ -73,6 +73,7 @@ public class Line implements Geometry{
             double offy = cachedFactory.geoToPixel(positionList.get(0), object.getZoom()).getY();
             Graphics2D g2d = (Graphics2D) g.create();
 //            g2d.translate(offx,offy);
+
             for (Style style : styles) {
                 if (strokeWidth != -1) {
                     style.applyStroke(g2d, strokeWidth);
@@ -80,12 +81,14 @@ public class Line implements Geometry{
                     style.applyStroke(g2d);
 
 
-
                 g2d.translate(offx,offy);
+
                 int n = positionList.size();
                 int[] xpoints = new int[n];
                 int[] ypoints = new int[n];
                 for(int i = 0; i < n; i++){
+
+                    //TODO Cache geotopixel
                     Point2D pos = cachedFactory.geoToPixel(positionList.get(i), object.getZoom());
                     xpoints[i] = (int) (Math.round(pos.getX() - offx));
                     ypoints[i] = (int) (Math.round(pos.getY() - offy));

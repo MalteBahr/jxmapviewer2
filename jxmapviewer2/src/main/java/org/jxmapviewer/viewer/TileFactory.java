@@ -10,6 +10,7 @@
 package org.jxmapviewer.viewer;
 
 
+import java.awt.*;
 import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public abstract class TileFactory
      * @return the size of the world bitmap in tiles
      * @param zoom the current zoom level
      */
-    public Dimension2D getMapSize(int zoom)
+    public Dimension getMapSize(int zoom)
     {
         return GeoUtil.getMapSize(zoom, getInfo());
     }
